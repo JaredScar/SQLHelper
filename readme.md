@@ -46,17 +46,19 @@ while ($row = $helper->get_both_array_results()) {
     }
 ```
 
-## Coming Soon:
+### _SQL Objects:_
 ---
 
 #### _Looping through SQL Object_
 
 ```
-
+while($row = $helper->get_results_as_objs()) {
+    echo 'One of the IDs to the query is: ' . $row->id;
+}
 ```
 
 #### _Getting the single SQL Object_
 
 ```
-
+$helper->get_sql_obj()->id; // This is the ID column value of query
 ```
