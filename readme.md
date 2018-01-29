@@ -1,5 +1,6 @@
 SQLHelper
 ---
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Hey welcome to SQLHelper, a PHP SQL class made for people who don't have access to the MySQLi function get_result, but have access to MySQLi bind_result only. Everyone is free to use this. Just please give credit where credit is due and share the resource so others can have the pleasure of using it! Thanks for checking it out!
 
