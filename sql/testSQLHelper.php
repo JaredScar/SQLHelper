@@ -16,5 +16,5 @@ if($helper->execute()) {
     }
     echo "<br /> <br /> <br />";
     echo "SQLObj test: ";
-    echo 'The id is ' . $helper->get_sql_obj()->g('id');
+    echo 'The id is ' . $helper->get_sql_obj()->id;
 }
