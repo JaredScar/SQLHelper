@@ -78,11 +78,9 @@ class SQLHelper
                     $this->sql_obj = new SQLObj($this->resultsDict[0]);
                 } else {
                     // Multiple rows
-                    /*
                     for ($i = 0; $i < $this->num_rows; $i++) {
-                        array_push($this->sql_objs, $this->resultsDict[$i]);
+                        array_push($this->sql_objs, new SQLObj($this->resultsDict[$i]));
                     }
-                    */
                 }
             }
             $mysqli->close();
