@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by PhpStorm.
  * User: user
@@ -7,7 +6,6 @@
  * Time: 4:01 PM
  */
 require_once 'SQLObj.php';
-
 class SQLHelper
 {
     private $host = "";
@@ -31,21 +29,17 @@ class SQLHelper
         $this->port = $port;
         $this->sql_obj = new SQLObj(array());
     }
-
     public function getSQL() {
         return new mysqli($this->host, $this->user, $this->pass, $this->db, $this->port);
     }
-
     public function prepare($stmt) {
         $prepared = $stmt;
         $this->prepared = $prepared;
     }
-
     public function bindParams($paramTypes, ...$params) {
         $this->paramTypes = $paramTypes;
         $this->bindedParams = $params;
     }
-
     public $num_rows = 0;
     public function execute($insert=false, $params=true) {
         $mysqli = $this->getSQL();
@@ -60,28 +54,18 @@ class SQLHelper
                 while ($field = $meta->fetch_field()) {
                     $params[] = &$row[$field->name];
                 }
-
                 call_user_func_array(array($stmt, 'bind_result'), $params);
-
                 while ($stmt->fetch()) {
+                    $sql_obj = new SQLObj();
                     foreach ($row as $key => $val) {
+                        $sql_obj->$key = $val;
                         $c[$key] = $val;
                         $this->num_rows++;
                     }
                     $rows[] = $c;
+                    array_push($this->sql_objs, $sql_obj);
                 }
                 $this->resultsDict = &$rows;
-                // add results to SQLObj class
-                //TODO Fix SQLObj to work better and more like MySQLi Objects
-                if ($this->num_rows == 1) {
-                    // Only works if there is 1 row to work with
-                    $this->sql_obj = new SQLObj($this->resultsDict[0]);
-                } else {
-                    // Multiple rows
-                    for ($i = 0; $i < $this->num_rows; $i++) {
-                        array_push($this->sql_objs, new SQLObj($this->resultsDict[$i]));
-                    }
-                }
             }
             $mysqli->close();
             return True;
@@ -109,42 +93,38 @@ class SQLHelper
     }
     // Only works if there is 1 row
     public function get_sql_obj() {
-        return $this->sql_obj;
+        return $this->sql_objs[0];
     }
     /** /
     private function bind($stmt) {
-        $byref_array_for_fields = array();
-        call_user_func_array(array($stmt, "bind_result"), $byref_array_for_fields);
-
-// returns a copy of a value
-        $copy = create_function('$a', 'return $a;');
-
-        $results = array();
-        while ($stmt->fetch()) {
-            // array_map will preserve keys when done here and this way
-            $results[] = array_map($copy, $byref_array_for_fields);
-        }
-        return $results;
+    $byref_array_for_fields = array();
+    call_user_func_array(array($stmt, "bind_result"), $byref_array_for_fields);
+    // returns a copy of a value
+    $copy = create_function('$a', 'return $a;');
+    $results = array();
+    while ($stmt->fetch()) {
+    // array_map will preserve keys when done here and this way
+    $results[] = array_map($copy, $byref_array_for_fields);
     }
-     /**/
-
+    return $results;
+    }
+    /**/
     /** /
     public function fetchAssocStatement($stmt)
     {
-        if($stmt->num_rows>0)
-        {
-            $result = array();
-            $md = $stmt->result_metadata();
-            $params = array();
-            while($field = $md->fetch_field()) {
-                $params[] = &$result[$field->name];
-            }
-            call_user_func_array(array($stmt, 'bind_result'), $params);
-            $stmt->fetch();
-            return $result;
-        }
-
-        return null;
+    if($stmt->num_rows>0)
+    {
+    $result = array();
+    $md = $stmt->result_metadata();
+    $params = array();
+    while($field = $md->fetch_field()) {
+    $params[] = &$result[$field->name];
+    }
+    call_user_func_array(array($stmt, 'bind_result'), $params);
+    $stmt->fetch();
+    return $result;
+    }
+    return null;
     }
     public function get_result_mixed() {}
     public function get_result_object() {}
