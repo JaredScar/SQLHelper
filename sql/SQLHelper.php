@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by PhpStorm.
  * User: user
@@ -7,7 +6,6 @@
  * Time: 4:01 PM
  */
 require_once 'SQLObj.php';
-
 class SQLHelper
 {
     private $host = "";
@@ -18,7 +16,8 @@ class SQLHelper
     private $paramTypes = "";
     private $bindedParams = array();
     private $bindedResults = array();
-    private $resultsDict = array();
+    //private $resultsDict = array();
+    private $resultArray = array();
     private $prepared = "";
     private $sql_obj = "";
     private $sql_objs = array();
@@ -31,69 +30,53 @@ class SQLHelper
         $this->port = $port;
         $this->sql_obj = new SQLObj(array());
     }
-
     public function getSQL() {
         return new mysqli($this->host, $this->user, $this->pass, $this->db, $this->port);
     }
-
     public function prepare($stmt) {
         $prepared = $stmt;
         $this->prepared = $prepared;
     }
-
     public function bindParams($paramTypes, ...$params) {
         $this->paramTypes = $paramTypes;
         $this->bindedParams = $params;
     }
-
     public $num_rows = 0;
-    public function execute($insert=false, $parameters=true) {
+    public function execute($insert=false, $areThereParams=true)
+    {
         $mysqli = $this->getSQL();
         $stmt = $mysqli->prepare($this->prepared);
-        if($parameters === true) {
+        if ($areThereParams == true) {
             $stmt->bind_param($this->paramTypes, ...$this->bindedParams);
         }
         $executed = $stmt->execute();
-        if($executed) {
-            if($insert === false) {
+        if ($executed) {
+            if ($insert == false) {
                 $meta = $stmt->result_metadata();
+                $params = array();
+                $cols = array();
+                //$rowArr = array();
+                $sql_obj = null;
                 while ($field = $meta->fetch_field()) {
-                    $params[] = &$row[$field->name];
+                    $params[] = &$cols[$field->name];
                 }
-
                 call_user_func_array(array($stmt, 'bind_result'), $params);
-
                 while ($stmt->fetch()) {
-                    foreach ($row as $key => $val) {
-                        $c[$key] = $val;
+                    $sql_obj = new SQLObj();
+                    $rowArr = array();
+                    foreach ($cols as $key => $val) {
+                        $sql_obj->$key = $val;
+                        $rowArr[$key] = $val;
                         $this->num_rows++;
                     }
-                    $rows[] = $c;
-                }
-                $this->resultsDict = &$rows;
-                if ($this->num_rows == 1) {
-                    // Only works if there is 1 row to work with
-                    $this->sql_obj = new SQLObj();
-                    // Loop through assoc variables and set their object variables and values to SQLObj
-                    foreach ($this->resultsDict[0] as $key => $value) {
-                        $this->sql_obj->$key = $value;
-                    }
-                } else {
-                    // Multiple rows
-                    $i = 0;
-                    while($i < sizeof($this->resultsDict)) {
-                        $sql_obj = new SQLObj();
-                        foreach ($this->resultsDict[$i] as $key => $value) {
-                            $sql_obj->$key = $value;
-                        }
-                        $this->sql_objs[] = $sql_obj;
-                    }
+                    $this->resultArray[] = $rowArr;
+                    $this->sql_objs[] = $sql_obj;
                 }
             }
             $mysqli->close();
             return True;
         }
-        $this->resultsDict = null;
+        $this->resultArray = null;
         $this->bindedResults = null;
         $mysqli->close();
         return False;
@@ -101,10 +84,10 @@ class SQLHelper
     private $assocIndex = -1;
     public function get_both_array_results() {
         $this->assocIndex++;
-        if($this->assocIndex < sizeof($this->resultsDict)) {
-            return $this->resultsDict[$this->assocIndex];
+        if($this->assocIndex < sizeof($this->resultArray)) {
+            return $this->resultArray[$this->assocIndex];
         }
-        return null;
+        return false;
     }
     private $objsIndex = -1;
     public function get_results_as_objs() {
@@ -112,10 +95,9 @@ class SQLHelper
         if($this->objsIndex < sizeof($this->sql_objs)) {
             return $this->sql_objs[$this->objsIndex];
         }
-        return null;
+        return false;
     }
-    // Only works if there is 1 row
+    // Only should be used when there is 1 row
     public function get_sql_obj() {
-        return $this->sql_obj;
+        return $this->sql_objs[0];
     }
-}
