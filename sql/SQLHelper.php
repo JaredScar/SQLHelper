@@ -30,6 +30,14 @@ class SQLHelper
         $this->port = $port;
         $this->sql_obj = new SQLObj(array());
     }
+    public function reset() {
+        $this->bindedParams = array();
+        $this->bindedResults = array();
+        $this->resultArray = array();
+        $this->prepared = "";
+        $this->sql_obj = "";
+        $this->sql_objs = array();
+    }
     public function getSQL() {
         return new mysqli($this->host, $this->user, $this->pass, $this->db, $this->port);
     }
@@ -81,7 +89,17 @@ class SQLHelper
         $mysqli->close();
         return False;
     }
+
     private $assocIndex = -1;
+    /**
+     * Use get_both_array_results() when needing to loop through multiple SQL rows
+     *
+     * Example in Use:
+     *
+     * while($row = $helper->get_both_array_results()) {}
+     *
+     * @return bool or mixed
+     */
     public function get_both_array_results() {
         $this->assocIndex++;
         if($this->assocIndex < sizeof($this->resultArray)) {
@@ -89,7 +107,30 @@ class SQLHelper
         }
         return false;
     }
+
+    /**
+     * Use get_array() when only 1 row is being returned from your query
+     *
+     * Example in Use:
+     *
+     * $row = $helper->get_array();
+     *
+     * @return mixed
+     */
+    public function get_array() {
+        return $this->resultArray[0];
+    }
+
     private $objsIndex = -1;
+    /**
+     * Use get_results_as_objs() when you want the returned rows to be in format of it's own object (an stdClass)
+     *
+     * Example in Use:
+     *
+     * while($row = $helper->get_results_as_objs()) {}
+     *
+     * @return bool or mixed
+     */
     public function get_results_as_objs() {
         $this->objsIndex++;
         if($this->objsIndex < sizeof($this->sql_objs)) {
@@ -97,7 +138,17 @@ class SQLHelper
         }
         return false;
     }
-    // Only should be used when there is 1 row
+
+    /**
+     * Use get_sql_obj() when only 1 row is being returned from your query
+     *
+     * Example in Use:
+     *
+     * $row = $helper->get_sql_obj();
+     *
+     * @return mixed
+     */
     public function get_sql_obj() {
         return $this->sql_objs[0];
     }
+}
